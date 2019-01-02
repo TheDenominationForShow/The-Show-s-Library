@@ -53,10 +53,11 @@ app.post('/login',async (req,res)=>{
             req.session.role=loginRet.role
             res.send({code:0,msg:"success"})
         } else {
-            res.send({code:-1,msg:"Username or password not match."})
+            res.send({code:-2,msg:"Username or password mismatch."})
         }
     } catch (e) {
         console.log("Exception: " + e)
+        res.send({code:-1,msg:"server internal error."})
     } finally {
         res.end()
     }
@@ -76,6 +77,28 @@ app.post("/isLogin",(req,res)=>{
     } else {
         res.send({code:0,msg:"success",isonline:false})
     }
+    res.end()
+})
+app.post("/register",async (req,res)=>{
+    if(req.session.username) {
+        res.send({code:-1,msg:"Operation not allowed."})
+    } else {
+        if(req.body.uname && req.body.upass) {
+            if(req.body.upass.length>=6) {
+                try {
+                    await (new UserDao).addUser(req.body.uname,req.body.upass,6)
+                    res.send({code:0,msg:"success"})
+                } catch (e) {
+                    res.send({code:-3,msg:"server internal error."})
+                }
+            } else {
+                res.send({code:-2,msg:"password too short."})
+            }
+        } else {
+            res.send({code:-1,msg:"username or password shouldn't be empty."})
+        }
+    }
+
     res.end()
 })
 

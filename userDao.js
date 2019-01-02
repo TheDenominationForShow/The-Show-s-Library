@@ -18,6 +18,19 @@ class UserDao {
             conn.end()
         })
     }
+
+    async addUser(uname,upass,role) {
+        return new Promise((resolve,reject)=>{
+            let options=DBConfig.getIns().getConfig()
+            let conn=mysql.createConnection(options)
+            conn.connect()
+            conn.query('insert into users values (?,?,?)',[uname,upass,role],(err,res)=>{
+                if(err) return reject(err)
+                return resolve()
+            })
+            conn.end()
+        })
+    }
 }
 
 module.exports=UserDao
