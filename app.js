@@ -18,10 +18,12 @@ dbOption.database='showlib_session'
 dbOption.checkExpirationInterval=60000 // 1 min
 dbOption.expiration=3600000 // 1 hour
 dbOption.connectionLimit=1
+
+// create table sessions (session_id varchar(255),expires int,data varchar(255));
 dbOption.schema={
     tableName:'sessions',
     columnNames:{
-        session_id:'session_id',
+        session_id:'session_id', // primary key
         expires:'expires',
         data:'data'
     }
@@ -60,11 +62,20 @@ app.post('/login',async (req,res)=>{
         res.end()
     }
 })
-app.get("/isLogin",(req,res)=>{
+app.post("/logout",(req,res)=>{
     if(req.session.username) {
-        res.send({code:0,msg:"success",result:`login as ${req.session.username}`})
+        req.session.username=undefined
+        res.send({code:0,msg:"success"})
     } else {
-        res.send({code:0,msg:"success",result:"not login"})
+        res.send({code:-1,msg:"not login"})
+    }
+    res.end()
+})
+app.post("/isLogin",(req,res)=>{
+    if(req.session.username) {
+        res.send({code:0,msg:"success",isonline:true,username:req.session.username})
+    } else {
+        res.send({code:0,msg:"success",isonline:false})
     }
     res.end()
 })

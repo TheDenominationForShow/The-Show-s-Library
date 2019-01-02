@@ -4,4 +4,33 @@
         <p>Password: <input name="upass" type="password"></p>
         <p><input type="submit"></p>
     </form>
+    <div>
+        <p>IsLogin: <span id="islogin"></span></p>
+        <p>
+            <input id="btnLogout" type="button" value="Log Out"> <span id="barStatus"></span>
+        </p>
+    </div>
+    
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+    <script>
+        $("#btnLogout").click(()=>{
+            $.post("/logout",(data)=>{
+                if(data.code==0) {
+                    $("#barStatus").text("Successfully log out")
+                } else {
+                    $("#barStatus").text(`Failed: ${data.msg}`)
+                }
+            },'json')
+        })
+
+        $.post("/isLogin",(data)=>{
+            if(data.isonline) {
+                $("#islogin").text(`Login as ${data.username}`)
+            } else {
+                $("#islogin").text("Not login")
+            }
+        },'json')
+    </script>
 </html>
