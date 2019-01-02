@@ -1,6 +1,7 @@
 const express=require('express')
 const session=require('express-session')
 const MySQLStore=require('express-mysql-session')(session)
+const multer=require('multer')
 
 // cookie-parser is no longer need to play with express-session.
 // See https://github.com/expressjs/session 
@@ -78,6 +79,20 @@ app.post("/isLogin",(req,res)=>{
         res.send({code:0,msg:"success",isonline:false})
     }
     res.end()
+})
+
+let upload=multer({
+    storage:multer.diskStorage({
+        destination: 'static/uploads',
+        filename:(req,file,cb)=>{
+            cb(null,file.originalname) // It's NOT file.filename
+        }
+    })
+})
+
+app.post("/upload",upload.single('upload_pdf'),(req,res,next)=>{
+    console.log('post /upload')
+    res.status(204).end("HelloWorld")
 })
 
 app.listen(8088)

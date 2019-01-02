@@ -1,3 +1,4 @@
 node_modules/
+static/uploads/
 db_config.json
 test.js
