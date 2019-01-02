@@ -49,8 +49,8 @@ app.post('/login',async (req,res)=>{
         let sess=req.session
         let name=req.body.uname
         let pass=req.body.upass
-        let loginOK=await (new UserDao).matchUser(name,pass)
-        if(loginOK) {
+        let loginRet=await (new UserDao).matchUser(name,pass)
+        if(loginRet.success) {
             req.session.username=name
             res.send({code:0,msg:"success"})
         } else {
