@@ -1,0 +1,25 @@
+{
+    "0":{
+        "name":"cardinal",
+        "allow-file-upload":true
+    },
+    "1":{
+        "name":"administrator",
+        "allow-file-upload":true
+    },
+    "2":{
+        "name":"admin-rank2"
+    },
+    "3":{
+        "name":"admin-rank3"
+    },
+    "4":{
+        "name":"admin-rank4"
+    },
+    "5":{
+        "name":"user"
+    },
+    "6":{
+        "name":"user-limited"
+    }
+}
