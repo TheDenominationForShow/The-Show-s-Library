@@ -11,16 +11,13 @@ const fs=require('fs')
 
 const DBConfig=require('./DBConfig')
 const UserDao=require('./userDao')
+const PermissionManager=require('./PermissionManager')
 
 let dbOption=DBConfig.getIns().getConfig()
-dbOption.host='localhost'
-dbOption.port='3306'
-dbOption.database='showlib_session'
 dbOption.checkExpirationInterval=60000 // 1 min
 dbOption.expiration=3600000 // 1 hour
 dbOption.connectionLimit=1
 
-// create table sessions (session_id varchar(255),expires int,data varchar(255));
 dbOption.schema={
     tableName:'sessions',
     columnNames:{
@@ -53,6 +50,7 @@ app.post('/login',async (req,res)=>{
         let loginRet=await (new UserDao).matchUser(name,pass)
         if(loginRet.success) {
             req.session.username=name
+            req.session.role=loginRet.role
             res.send({code:0,msg:"success"})
         } else {
             res.send({code:-1,msg:"Username or password not match."})
@@ -87,12 +85,29 @@ let upload=multer({
         filename:(req,file,cb)=>{
             cb(null,file.originalname) // It's NOT file.filename
         }
-    })
+    }),
+    fileFilter:(req,file,cb)=>{
+        if(req.session.username 
+            && PermissionManager.getIns().isAllowed(req.session.role,"allow-file-upload")) {
+                console.log("file accepted.")
+                cb(null,true)
+        } else {
+            console.log("file rejected.")
+            cb(null,false)
+        }
+    }
 })
 
-app.post("/upload",upload.single('upload_pdf'),(req,res,next)=>{
-    console.log('post /upload')
-    res.status(204).end("HelloWorld")
+// This post handler will only be called after multer's fileFilter.
+// If the file is rejected, req.file will be undefined (or null?)
+app.post("/upload",upload.single('upload_pdf'),(req,res)=>{
+    if(req.file) {
+        res.send({code:0,msg:"success"})
+    } else {
+        res.send({code:-1,msg:"Failed to upload."})
+    }
+
+    res.end()
 })
 
 app.listen(8088)

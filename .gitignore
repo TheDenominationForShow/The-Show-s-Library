@@ -1,4 +1,7 @@
 node_modules/
 static/uploads/
+
 db_config.json
+config/database.json
+
 test.js
