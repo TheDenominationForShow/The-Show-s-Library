@@ -24,6 +24,8 @@
 create table sessions (session_id varchar(255) primary key,expires int,data varchar(255));
 
 create table users (username varchar(255) primary key, password varchar(255), role int);
+
+create table books (bookid varchar(255) primary key, realname varchar(255));
 ```
 
 ## 权限控制
