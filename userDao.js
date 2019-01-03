@@ -2,7 +2,7 @@ const DBConfig=require('./DBConfig')
 const mysql=require('mysql')
 
 class UserDao {
-    async matchUser(uname,upass) {
+    matchUser(uname,upass) {
         return new Promise((resolve,reject)=>{
             let options=DBConfig.getIns().getConfig()
             let conn=mysql.createConnection(options)
@@ -19,7 +19,7 @@ class UserDao {
         })
     }
 
-    async addUser(uname,upass,role) {
+    addUser(uname,upass,role) {
         return new Promise((resolve,reject)=>{
             let options=DBConfig.getIns().getConfig()
             let conn=mysql.createConnection(options)

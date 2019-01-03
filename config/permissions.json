@@ -1,23 +1,29 @@
 {
     "0":{
         "name":"cardinal",
-        "allow-file-upload":true
+        "allow-file-upload":true,
+        "allow-file-download":true
     },
     "1":{
         "name":"administrator",
-        "allow-file-upload":true
+        "allow-file-upload":true,
+        "allow-file-download":true
     },
     "2":{
-        "name":"admin-rank2"
+        "name":"admin-rank2",
+        "allow-file-download":true
     },
     "3":{
-        "name":"admin-rank3"
+        "name":"admin-rank3",
+        "allow-file-download":true
     },
     "4":{
-        "name":"admin-rank4"
+        "name":"admin-rank4",
+        "allow-file-download":true
     },
     "5":{
-        "name":"user"
+        "name":"user",
+        "allow-file-download":true
     },
     "6":{
         "name":"user-limited"

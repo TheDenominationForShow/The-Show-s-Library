@@ -1,5 +1,6 @@
 node_modules/
 static/uploads/
+objects/
 
 db_config.json
 config/database.json

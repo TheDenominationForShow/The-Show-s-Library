@@ -2,12 +2,16 @@ const express=require('express')
 const session=require('express-session')
 const MySQLStore=require('express-mysql-session')(session)
 const multer=require('multer')
+const crypto=require('crypto')
+const uuid=require('uuid/v4') // Random uuid
 
 // cookie-parser is no longer need to play with express-session.
 // See https://github.com/expressjs/session 
 const cookieParser=require('cookie-parser')
 const bodyParser=require('body-parser')
 const fs=require('fs')
+const path=require('path')
+const promisify=require('util').promisify
 
 const DBConfig=require('./DBConfig')
 const UserDao=require('./userDao')
@@ -35,7 +39,7 @@ app.use(bodyParser.urlencoded({extended:true})) // why extended?
 app.use(session({
     secret:'TheShowsLibrary-Secret',
     name:'TheShowsLibrary',
-    cookie:{maxAge:60000},
+    cookie:{maxAge:300000}, // 5 min
     store: sessionStorage,
     resave:false,
     saveUninitialized:false
@@ -102,11 +106,24 @@ app.post("/register",async (req,res)=>{
     res.end()
 })
 
+function getFileHash(filepath) {
+    return new Promise((resolve,reject)=>{
+        let stream=fs.createReadStream(filepath)
+        let hash=crypto.createHash('sha1')
+        stream.on('data',(data)=>{
+            hash.update(data)
+        })
+        stream.on('end',()=>{
+            resolve(hash.digest('hex'))
+        })
+    })
+}
+
 let upload=multer({
     storage:multer.diskStorage({
-        destination: 'static/uploads',
+        destination: path.join("static","uploads"),
         filename:(req,file,cb)=>{
-            cb(null,file.originalname) // It's NOT file.filename
+            cb(null,uuid()) // Do not use file.filename, it is undefined.
         }
     }),
     fileFilter:(req,file,cb)=>{
@@ -123,9 +140,12 @@ let upload=multer({
 
 // This post handler will only be called after multer's fileFilter.
 // If the file is rejected, req.file will be undefined (or null?)
-app.post("/upload",upload.single('upload_pdf'),(req,res)=>{
+app.post("/upload",upload.single('upload_pdf'),async (req,res)=>{
     if(req.file) {
-        res.send({code:0,msg:"success"})
+        let hash=await getFileHash(req.file.path)
+        await promisify(fs.rename)(req.file.path,path.join("objects",hash))
+        console.log(`${req.file.filename} -> ${hash}`)
+        res.send({code:0,msg:"success",fileid:hash})
     } else {
         res.send({code:-1,msg:"Failed to upload."})
     }
@@ -133,4 +153,22 @@ app.post("/upload",upload.single('upload_pdf'),(req,res)=>{
     res.end()
 })
 
-app.listen(8088)
+// TODO
+// This api is still under developing.
+app.post("/download",(req,res)=>{
+    if(req.body.fileid && req.session.username && 
+        PermissionManager.getIns().isAllowed(req.session.role,"allow-file-download") ) {
+        let filename=path.join(__dirname,"static","uploads",req.body.fileid)
+        fs.exists(filename,(isExists)=>{
+            if(isExists) res.sendFile(filename)
+            else res.status(404).end("Sorry, the requested file is not on this server.")
+        })
+    } else {
+        res.status(403).end("Sorry, login is required to download this file.")
+    }
+})
+
+app.listen(8088,async ()=>{
+    console.log("server started.")
+    await promisify(fs.mkdir)("objects",{recursive:true})
+})
