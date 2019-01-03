@@ -15,6 +15,7 @@ const promisify=require('util').promisify
 
 const DBConfig=require('./DBConfig')
 const UserDao=require('./userDao')
+const BookDao=require('./bookDao')
 const PermissionManager=require('./PermissionManager')
 
 let dbOption=DBConfig.getIns().getConfig()
@@ -109,7 +110,8 @@ app.post("/register",async (req,res)=>{
 function getFileHash(filepath) {
     return new Promise((resolve,reject)=>{
         let stream=fs.createReadStream(filepath)
-        let hash=crypto.createHash('sha1')
+        // Algorithm changed to sha256 to avoid sha-1 collision.
+        let hash=crypto.createHash('sha256')
         stream.on('data',(data)=>{
             hash.update(data)
         })
@@ -121,9 +123,11 @@ function getFileHash(filepath) {
 
 let upload=multer({
     storage:multer.diskStorage({
-        destination: path.join("static","uploads"),
+        destination: "temp",
         filename:(req,file,cb)=>{
-            cb(null,uuid()) // Do not use file.filename, it is undefined.
+            let this_id=uuid()
+            console.log(`${file.originalname} --upload--> ${this_id}`)
+            cb(null,this_id) // Do not use file.filename, it is undefined.
         }
     }),
     fileFilter:(req,file,cb)=>{
@@ -142,10 +146,20 @@ let upload=multer({
 // If the file is rejected, req.file will be undefined (or null?)
 app.post("/upload",upload.single('upload_pdf'),async (req,res)=>{
     if(req.file) {
-        let hash=await getFileHash(req.file.path)
-        await promisify(fs.rename)(req.file.path,path.join("objects",hash))
-        console.log(`${req.file.filename} -> ${hash}`)
-        res.send({code:0,msg:"success",fileid:hash})
+        try {
+            let hash=await getFileHash(req.file.path)
+            // TODO
+            // This will overwrite the existing same hash named file on disk.
+            // But, with the same hash value, these two files are the same. Right?
+            await promisify(fs.rename)(req.file.path,path.join("objects",hash))
+            console.log(`${req.file.filename} -> ${hash} (Original name: ${req.file.originalname})`)
+
+            await (new BookDao).newBook(hash,req.file.originalname)
+            res.send({code:0,msg:"success",fileid:hash})
+        } catch (e) {
+            console.log(`Upload Exception: ${e.toString()}`)
+            res.send({code:-2,msg:"server internal error"})
+        }
     } else {
         res.send({code:-1,msg:"Failed to upload."})
     }

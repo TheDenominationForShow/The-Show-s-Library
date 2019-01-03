@@ -11,6 +11,9 @@ class BookDao {
                 if(err) return reject(err)
                 else return resolve()
             })
+            conn.end()
         })
     }
 }
+
+module.exports=BookDao

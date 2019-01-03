@@ -1,5 +1,6 @@
 node_modules/
 static/uploads/
+temp/
 objects/
 
 db_config.json
