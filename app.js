@@ -182,6 +182,71 @@ app.post("/download",(req,res)=>{
     }
 })
 
+async function CleanDanglingObject() {
+    let files=await promisify(fs.readdir)("objects")
+    let barr=await (new BookDao).listBookID()
+
+    return new Promise((resolve,reject)=>{
+        let total=0
+        let done=0
+        let errArr=new Array
+
+        // JS for is synchronous, so total/done would work. (?)
+        // foreach val in files: if !(val in barr) delete it
+        for(let i=0;i<files.length;i++) {
+            // Use indexOf instead of findIndex (or call with a compare function!)
+            if(barr.indexOf(files[i])<0) {
+                ++total
+                console.log(`Removing object: ${files[i]}...`)
+                fs.unlink(path.join("objects",files[i]),(err)=>{
+                    if(err) {
+                        errArr.push(err.toString())
+                    }
+
+                    ++done
+
+                    if(done==total) {
+                        if(errArr.length==0) {
+                            resolve(total)
+                        } else {
+                            reject({total:total,errs:errArr})
+                        }
+                    }
+                })
+            }
+        }
+
+        console.log(`total: ${total} done: ${done}`) // done is expected to be 0.
+        if(total==0) {
+            return resolve(0)
+        }
+    })
+}
+
+// TODO,WIP
+// Admin API
+app.post("/cleanobj",async (req,res)=>{
+    if(req.session.username && 
+        PermissionManager.getIns().isAllowed(req.session.role,"allow-object-clean") ) {
+        console.log("Performing object cleaning...")
+        try {
+            let total=await CleanDanglingObject()
+            res.send({code:0,msg:"success",total:total})
+        } catch (e) {
+            if(e.total && e.errs) {
+                res.send({code:-2,msg:"server runtime error",total:e.total,errs:e.errs})
+            } else {
+                res.send({code:-2,msg:"general error",err:e.toString()})
+                console.log(e)
+            }
+        }
+    } else {
+        res.send({code:-1,msg:"Permission denied"})
+    }
+
+    res.end()
+})
+
 app.listen(8088,async ()=>{
     console.log("server started.")
     await promisify(fs.mkdir)("objects",{recursive:true})

@@ -1,0 +1,23 @@
+<html>
+    <div>
+        <p>Admin Control Panel</p>
+
+        <input type="button" id="clear_dangling_objects" value="Clear Dangling Objects">
+    </div>
+
+    <div id="barStatus">
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+    <script>
+        $("#clear_dangling_objects").click(()=>{
+            $.post("/cleanobj",(data)=>{
+                $("#barStatus").text(`Operation Finished: ${JSON.stringify(data)}`)
+            },'json').fail(()=>{
+                $("#barStatus").text("Failed to clean obj.")
+            })
+        })
+    </script>
+</html>
