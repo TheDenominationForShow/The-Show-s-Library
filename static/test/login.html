@@ -1,8 +1,8 @@
 <html>
-    <form action="/login" method="POST">
-        <p>UserName: <input name="uname" type="text"></p>
-        <p>Password: <input name="upass" type="password"></p>
-        <p><input type="submit"></p>
+    <form action="" method="">
+        <p>UserName: <input id="uname" type="text"></p>
+        <p>Password: <input id="upass" type="password"></p>
+        <p><input type="submit" id="login"></p>
     </form>
     <div>
         <p>IsLogin: <span id="islogin"></span></p>
@@ -18,9 +18,11 @@
         $("#btnLogout").click(()=>{
             $.post("/logout",(data)=>{
                 if(data.code==0) {
-                    $("#barStatus").text("Successfully log out")
+                    // $("#barStatus").text("Successfully log out")
+                    alert("success")
                 } else {
-                    $("#barStatus").text(`Failed: ${data.msg}`)
+                   //$("#barStatus").text(`Failed: ${data.msg}`)
+                    alert("failed logout")
                 }
             },'json')
         })
@@ -32,5 +34,18 @@
                 $("#islogin").text("Not login")
             }
         },'json')
+        $("#login").click(function() {
+            data1 = { }
+            data1.uname = $("#uname").val()
+            data1.upass = $("#upass").val()
+            $.post("/test/login.html",data1, (data)=>{
+            if(data.code == 0) {
+                window.location = '/test/upload.html'
+            } else {
+               alert("failure")
+            }
+            },'json')
+        }) 
+       
     </script>
 </html>

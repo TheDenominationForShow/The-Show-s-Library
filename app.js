@@ -36,7 +36,9 @@ let sessionStorage=new MySQLStore(dbOption)
 
 let app=express()
 //app.use(cookieParser())
-app.use(bodyParser.urlencoded({extended:true})) // why extended?
+app.use(bodyParser.urlencoded({extended:false}))
+app.use(bodyParser.json()) // why extended?
+app.use(bodyParser.text())
 app.use(session({
     secret:'TheShowsLibrary-Secret',
     name:'TheShowsLibrary',
@@ -47,19 +49,25 @@ app.use(session({
 }))
 
 app.use(express.static('static'))
-app.post('/login',async (req,res)=>{
+app.post('/test/login.html',async (req,res)=>{
     try {
-        let sess=req.session
-        let name=req.body.uname
-        let pass=req.body.upass
-        let loginRet=await (new UserDao).matchUser(name,pass)
-        if(loginRet.success) {
-            req.session.username=name
-            req.session.role=loginRet.role
+        // let sess=req.session
+        // let name=req.body.uname
+        // let pass=req.body.upass
+        // let loginRet=await (new UserDao).matchUser(name,pass)
+        // if(loginRet.success) {
+        //     req.session.username=name
+        //     req.session.role=loginRet.role
+        if (req.body.uname=='1' && req.body.upass=='1') {
             res.send({code:0,msg:"success"})
         } else {
-            res.send({code:-2,msg:"Username or password mismatch."})
+            res.send({code:1,msg:"faliure"})
         }
+        // } else {
+        //     res.send({code:-2,msg:"Username or password mismatch."})
+        // }
+     
+       
     } catch (e) {
         console.log("Exception: " + e)
         res.send({code:-1,msg:"server internal error."})
@@ -67,10 +75,16 @@ app.post('/login',async (req,res)=>{
         res.end()
     }
 })
+var router = express.Router()
+router.post('/test/logout',async (req,res)=>{
+    res.send({code:0,msg:"success"})
+})
+
 app.post("/logout",(req,res)=>{
     if(req.session.username) {
         req.session.username=undefined
         res.send({code:0,msg:"success"})
+        
     } else {
         res.send({code:-1,msg:"not login"})
     }
@@ -79,6 +93,7 @@ app.post("/logout",(req,res)=>{
 app.post("/isLogin",(req,res)=>{
     if(req.session.username) {
         res.send({code:0,msg:"success",isonline:true,username:req.session.username})
+       
     } else {
         res.send({code:0,msg:"success",isonline:false})
     }
@@ -109,15 +124,19 @@ app.post("/register",async (req,res)=>{
 
 function getFileHash(filepath) {
     return new Promise((resolve,reject)=>{
-        let stream=fs.createReadStream(filepath)
+        try {
+            let stream=fs.createReadStream(filepath)
         // Algorithm changed to sha256 to avoid sha-1 collision.
-        let hash=crypto.createHash('sha256')
-        stream.on('data',(data)=>{
-            hash.update(data)
-        })
-        stream.on('end',()=>{
-            resolve(hash.digest('hex'))
-        })
+            let hash=crypto.createHash('sha256')
+            stream.on('data',(data)=>{
+                hash.update(data)
+            })
+            stream.on('end',()=>{
+                resolve(hash.digest('hex'))
+            })
+        } catch(e) {
+
+        }
     })
 }
 
@@ -249,5 +268,9 @@ app.post("/cleanobj",async (req,res)=>{
 
 app.listen(8088,async ()=>{
     console.log("server started.")
-    await promisify(fs.mkdir)("objects",{recursive:true})
+    try {
+        await promisify(fs.mkdir)("objects",{recursive:true})
+    } catch(e) {
+
+    }
 })

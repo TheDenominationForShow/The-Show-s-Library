@@ -3,7 +3,7 @@ const fs=require('fs')
 class DBConfig
 {
     constructor() {
-        this.userJSON=JSON.parse(fs.readFileSync('config/database.json'))
+        //this.userJSON=JSON.parse(fs.readFileSync('config/database.json'))
     }
 
     static getIns() {
@@ -15,7 +15,8 @@ class DBConfig
     }
 
     getConfig() {
-        return this.userJSON
+        return JSON.parse("{}")
+        //this.userJSON
     }
 }
 
