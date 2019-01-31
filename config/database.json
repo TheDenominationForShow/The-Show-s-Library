@@ -1,0 +1,7 @@
+{
+    "user":"user",
+    "password":"user",
+    "host":"localhost",
+    "port":3306,
+    "database":"showlib"
+}
